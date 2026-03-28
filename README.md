@@ -1,5 +1,5 @@
 # Tennis-Shot-Pose-Estimation-using-LSTM
-this project is about blablabla
+this project is a complete end-to-end system for automatic classification of tennis strokes in video using Long Short-Term Memory (LSTM) networks and MediaPipe Pose Landmarker. The proposed pipeline consists of three stages: manual annotation of impact moments in training videos, LSTM model training on extracted 30-frame skeletal sequences, and real-time inference on unseen video. Each frame is represented as a 99-dimensional feature vector derived from 33 MediaPipe body keypoints.
 ## Dataset Construction
 ### Download data
 to get the dataset, you can download any videos on youtube using a converter.
@@ -44,3 +44,46 @@ it will create a gif such as:
 2. backhand
 
 ![Image](https://github.com/user-attachments/assets/9888abcd-a7f4-4f7e-b4eb-e8c969e32bc2)
+
+3. serve
+
+![Image](https://github.com/user-attachments/assets/202d82ef-d831-426b-8a64-f21d7200de33)
+
+
+## Training Procedure
+for training, you can use `train.py` file
+
+```bash
+python train.py
+```
+
+Sequences were constructed from the CSV dataset using a non-overlapping sliding window (stride = sequence length = 30), ensuring that no single raw frame contributes to more than one training sequence. The dataset was partitioned 80/20 into training and validation sets using stratified random splitting (train_test_split, random_state=42). The model was trained using the Adam optimizer with an initial learning rate of 1 × 10−4, batch size 32, and a maximum of 100 epochs.
+
+Two callbacks were employed: EarlyStopping (patience = 3, monitoring validation loss) halted training when no improvement was observed for three consecutive epochs; ReduceLROnPlateau (factor = 0.5, patience = 7, min_lr = 1 × 10−5) halved the learning rate when validation loss plateaued for 7 epochs. Training terminated at epoch 42.
+
+classification report:
+
+<img width="2000" height="800" alt="image" src="https://github.com/user-attachments/assets/be7a7b9d-44e6-437a-9db0-de6a71c526ef" />
+
+confusion matrix:
+
+<img width="720" height="600" alt="image" src="https://github.com/user-attachments/assets/a38cf173-d386-4cbc-b15f-dc87151b1a2f" />
+
+training_plot:
+
+<img width="1440" height="480" alt="image" src="https://github.com/user-attachments/assets/11627b00-dee7-408b-bb74-7bcb355da38c" />
+
+the results will be saved in the `tennis_model.h5` file.
+
+## Video Prediction
+
+for prediction, you can use predict_video.py by running:
+
+```bash
+python predict_video.py --video yourtestingvideo.mp4
+```
+
+it will predict the video you choose with a probability of each class in each frame.
+
+## NOTE
+if you want to predict in real-time using webcam, use the `extract_mirror.py` to extract the video in mirror. then, use the `predict_realtime.py` to predict with your camera open.
